@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guida — VascaLab</title>
+<style>
+  :root {
+    --bg: #EEF6F6; --surface: #FFFFFF; --surface-2: #E6F1F1; --border: #D3E4E3;
+    --ink: #143238; --muted: #62807F; --accent: #FF5A46; --teal: #0E7C86;
+    --font-sans: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: "SF Mono", "DM Mono", Menlo, Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); margin: 0; padding: 0 16px 80px; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  header { display: flex; align-items: center; gap: 14px; padding: 28px 0 8px; }
+  header img { width: 52px; height: 52px; }
+  header .brand { font-size: 1.3rem; font-weight: 700; }
+  header .tag { color: var(--muted); font-size: 0.85rem; }
+  nav { display: flex; gap: 18px; margin: 18px 0 30px; border-bottom: 1px solid var(--border); padding-bottom: 14px; }
+  nav a { color: var(--teal); text-decoration: none; font-weight: 600; font-size: 0.92rem; }
+  nav a:hover { text-decoration: underline; }
+  nav a.active { color: var(--ink); }
+  h1 { font-size: 1.6rem; margin-bottom: 6px; }
+  h2 { font-size: 1.15rem; margin-top: 40px; margin-bottom: 10px; color: var(--teal); }
+  p, li { line-height: 1.6; font-size: 0.96rem; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; margin-bottom: 18px; box-shadow: 0 1px 2px rgba(20,50,56,0.04); }
+  .step { display: flex; gap: 14px; margin-bottom: 20px; }
+  .step .num { flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; }
+  .step .txt { flex: 1; }
+  .step .txt b { display: block; margin-bottom: 3px; }
+  code { font-family: var(--font-mono); background: var(--surface-2); padding: 1px 6px; border-radius: 4px; font-size: 0.88rem; }
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; margin: 12px 0; }
+  .sw { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+  .sw .dot { width: 14px; height: 14px; border-radius: 4px; }
+  .note { background: var(--surface-2); border-left: 3px solid var(--teal); padding: 10px 16px; border-radius: 0 8px 8px 0; font-size: 0.9rem; margin: 14px 0; }
+  a.btn { display: inline-block; background: var(--accent); color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-weight: 700; margin-top: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="logo.svg" alt="VascaLab">
+    <div>
+      <div class="brand">VascaLab</div>
+      <div class="tag">Editor di length FIT per il nuoto</div>
+    </div>
+  </header>
+  <nav>
+    <a href="index.html">Editor</a>
+    <a href="help.html" class="active">Guida</a>
+    <a href="faq.html">FAQ</a>
+  </nav>
+
+  <h1>Come funziona VascaLab</h1>
+  <p>VascaLab ti permette di correggere i length (le singole vasche) di una nuotata registrata dal tuo orologio, quando il dispositivo ha sbagliato qualcosa: una vasca contata come riposo che in realtà era nuotata, due vasche unite per errore in una sola, uno stile sbagliato. Tutto avviene nel tuo browser: nessun file viene caricato su internet.</p>
+
+  <h2>Il flusso in breve</h2>
+
+  <div class="step">
+    <div class="num">1</div>
+    <div class="txt"><b>Carica il file .fit</b>Scarica l'attività da Garmin Connect (Esporta originale) e trascinala nella pagina, o clicca per selezionarla. VascaLab controlla subito il file e corregge automaticamente eventuali incoerenze già presenti.</div>
+  </div>
+  <div class="step">
+    <div class="num">2</div>
+    <div class="txt"><b>Leggi la timeline</b>Ogni colonnina rappresenta una vasca (length). L'altezza è proporzionale alla durata; il colore indica lo stile.</div>
+  </div>
+  <div class="step">
+    <div class="num">3</div>
+    <div class="txt"><b>Seleziona e modifica</b>Un clic seleziona una vasca (e mostra le azioni per quella singola vasca). Ctrl+clic (⌘+clic su Mac) aggiunge altre vasche <i>adiacenti</i> alla selezione, per unirle.</div>
+  </div>
+  <div class="step">
+    <div class="num">4</div>
+    <div class="txt"><b>Scarica il file corretto</b>Il pulsante in alto genera un nuovo .fit con tutti i totali ricalcolati, pronto da ricaricare su Garmin Connect (cancella prima l'attività originale per evitare doppioni).</div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Colori della timeline</h2>
+    <div class="swatches">
+      <div class="sw"><span class="dot" style="background:#1FB0AD"></span>Stile libero</div>
+      <div class="sw"><span class="dot" style="background:#3E76E0"></span>Dorso</div>
+      <div class="sw"><span class="dot" style="background:#F2994A"></span>Rana</div>
+      <div class="sw"><span class="dot" style="background:#B15CD8"></span>Delfino</div>
+      <div class="sw"><span class="dot" style="background:#D9A800"></span>Drill</div>
+      <div class="sw"><span class="dot" style="background:repeating-linear-gradient(45deg,#DCE9E8,#DCE9E8 3px,#CFDFDE 3px,#CFDFDE 6px)"></span>Riposo (tratteggio)</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Dividere una vasca</h2>
+    <p>Seleziona una sola vasca e premi <b>Dividi</b>. Uno slider ti fa scegliere il punto esatto (in secondi) dove tagliarla in due — utile quando l'orologio ha unito per errore due vasche in una. Se la vasca è attiva, puoi assegnare uno stile diverso a ciascuna metà.</p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Unire più vasche</h2>
+    <p>Seleziona due o più vasche <b>adiacenti</b> (Ctrl+clic) e premi <b>Unisci</b>. Diventano un'unica vasca con durata, bracciate e distanza sommate. Funziona con qualsiasi combinazione di riposo/attivo.</p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Cambiare tipo o stile</h2>
+    <p>Con una sola vasca selezionata, il pulsante <b>Segna come attivo/riposo</b> inverte il tipo. Se attiva, un menu a tendina permette di scegliere lo stile e un campo numerico le bracciate.</p>
+    <div class="note">Quando trasformi un riposo in attivo, VascaLab crea automaticamente il "contenitore" (lap) che Garmin Connect usa per riconoscere l'intervallo come a sé stante — con la frequenza cardiaca calcolata dai dati reali di quel momento, non inventata.</div>
+  </div>
+
+  <h2>Domande frequenti</h2>
+  <p>Per le domande più comuni (dati, compatibilità, sicurezza) vai alla pagina <a href="faq.html">FAQ</a>.</p>
+
+  <a class="btn" href="index.html">Apri l'editor →</a>
+</div>
+</body>
+</html>

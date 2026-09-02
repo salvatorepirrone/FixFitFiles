@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FAQ — VascaLab</title>
+<style>
+  :root {
+    --bg: #EEF6F6; --surface: #FFFFFF; --surface-2: #E6F1F1; --border: #D3E4E3;
+    --ink: #143238; --muted: #62807F; --accent: #FF5A46; --teal: #0E7C86;
+    --font-sans: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--ink); font-family: var(--font-sans); margin: 0; padding: 0 16px 80px; }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  header { display: flex; align-items: center; gap: 14px; padding: 28px 0 8px; }
+  header img { width: 52px; height: 52px; }
+  header .brand { font-size: 1.3rem; font-weight: 700; }
+  header .tag { color: var(--muted); font-size: 0.85rem; }
+  nav { display: flex; gap: 18px; margin: 18px 0 30px; border-bottom: 1px solid var(--border); padding-bottom: 14px; }
+  nav a { color: var(--teal); text-decoration: none; font-weight: 600; font-size: 0.92rem; }
+  nav a:hover { text-decoration: underline; }
+  nav a.active { color: var(--ink); }
+  h1 { font-size: 1.6rem; margin-bottom: 22px; }
+  details { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 12px; padding: 4px 20px; box-shadow: 0 1px 2px rgba(20,50,56,0.04); }
+  summary { cursor: pointer; font-weight: 700; padding: 14px 0; list-style: none; display: flex; justify-content: space-between; align-items: center; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: '+'; color: var(--accent); font-size: 1.3rem; font-weight: 400; }
+  details[open] summary::after { content: '–'; }
+  details p { line-height: 1.6; padding-bottom: 16px; margin: 0; color: var(--ink); font-size: 0.95rem; }
+  details p + p { margin-top: 10px; }
+  code { font-family: "SF Mono", "DM Mono", Menlo, Consolas, monospace; background: var(--surface-2); padding: 1px 6px; border-radius: 4px; font-size: 0.87rem; }
+  a { color: var(--teal); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="logo.svg" alt="VascaLab">
+    <div>
+      <div class="brand">VascaLab</div>
+      <div class="tag">Editor di length FIT per il nuoto</div>
+    </div>
+  </header>
+  <nav>
+    <a href="index.html">Editor</a>
+    <a href="help.html">Guida</a>
+    <a href="faq.html" class="active">FAQ</a>
+  </nav>
+
+  <h1>Domande frequenti</h1>
+
+  <details open>
+    <summary>I miei dati vengono caricati da qualche parte?</summary>
+    <p>No. VascaLab funziona interamente nel tuo browser: il file .fit viene letto, modificato e riscritto sul tuo dispositivo. Non c'è nessun server, nessun upload, nessuna copia salvata altrove.</p>
+  </details>
+
+  <details>
+    <summary>Perché Garmin Connect mostra ancora "sconosciuto" dopo la modifica?</summary>
+    <p>Di solito succede per una di queste ragioni:</p>
+    <p>1) Stai ricaricando un file diverso da quello appena scaricato (magari una scheda del browser rimasta aperta con una versione vecchia dell'editor, o un file salvato in precedenza).</p>
+    <p>2) Garmin Connect non ha ancora cancellato la vecchia attività: cancellala prima di ricaricare quella corretta, altrimenti alcuni browser/schede mostrano la versione in cache.</p>
+    <p>3) Se il problema persiste, scarica di nuovo il file dall'editor e controlla che appaia il messaggio verde di conferma al caricamento.</p>
+  </details>
+
+  <details>
+    <summary>Cosa succede alla frequenza cardiaca quando modifico una vasca?</summary>
+    <p>La FC media/massima di sessione e delle vasche esistenti resta quella originale, perché è calcolata dal flusso di dati grezzi del cardiofrequenzimetro, che l'editor non tocca mai. Solo quando crei una vasca nuova (es. trasformando un riposo in attivo) VascaLab calcola la FC di quella specifica finestra temporale direttamente dai dati grezzi — non la inventa.</p>
+  </details>
+
+  <details>
+    <summary>Posso modificare anche corsa, ciclismo o altri sport?</summary>
+    <p>No, per ora VascaLab lavora solo su nuotate in vasca (pool swim), perché la logica è specifica per i length e i lap che questo tipo di allenamento usa. Altri sport non hanno questa struttura.</p>
+  </details>
+
+  <details>
+    <summary>Il file corretto funziona anche su Strava o altri servizi?</summary>
+    <p>Sì: il file resta un .fit standard e valido. Puoi caricarlo ovunque accetti file FIT, non solo su Garmin Connect.</p>
+  </details>
+
+  <details>
+    <summary>Posso annullare una modifica?</summary>
+    <p>Non c'è un tasto "annulla": se sbagli, ricarica di nuovo il file .fit originale nell'editor e riparti. Per questo è una buona idea tenere sempre da parte l'esportazione originale di Garmin Connect.</p>
+  </details>
+
+  <details>
+    <summary>Funziona da telefono?</summary>
+    <p>Sì, la pagina è responsive e usa solo funzioni standard del browser (lettura file, download). Su alcuni browser mobile il passaggio "trascina il file" non è disponibile: usa il pulsante per selezionarlo dalla galleria/file.</p>
+  </details>
+
+  <details>
+    <summary>È sicuro modificare un file FIT?</summary>
+    <p>Sì per l'uso previsto (correggere errori di registrazione). Ricorda però che stai modificando dati storici di un allenamento realmente svolto: usa l'editor per correggere ciò che il dispositivo ha registrato in modo sbagliato, non per alterare artificialmente le tue prestazioni.</p>
+  </details>
+
+  <details>
+    <summary>Perché due vasche identiche a volte hanno durate leggermente diverse dopo un'unione?</summary>
+    <p>Perché la durata unita è la somma esatta (al millisecondo) delle vasche originali — se vedi arrotondamenti è solo nella visualizzazione (es. "0:52" invece di "0:52,3"), il dato salvato nel file resta preciso.</p>
+  </details>
+</div>
+</body>
+</html>
