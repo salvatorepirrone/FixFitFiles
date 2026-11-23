@@ -9,7 +9,7 @@ Un editor web dei **length di nuoto in vasca** nei file FIT di Garmin: permette 
 - Repo GitHub pubblico: https://github.com/salvatorepirrone/FixFitFiles (ramo `main`).
 - Sito: https://fixfitfiles.netlify.app/ . Netlify pubblica da `main` in automatico (verificato: dopo un push la nuova versione è online in pochi secondi). Le impostazioni di Netlify non sono state viste.
 - File nella radice, nessuna build né dipendenze: `index.html` (editor con intestazione e menu), `fit-editor.html` (stesso editor senza intestazione), `help.html`, `faq.html`, `logo.svg`. Tutto in un solo file HTML con CSS e JavaScript inline, interfaccia in italiano.
-- I file HTML hanno fine riga LF (verificato il 2026-11-23; una nota precedente diceva CRLF): vanno mantenuti.
+- Fine riga: nel repository i file HTML sono memorizzati con LF (verificato con `git ls-files --eol`); sul PC Windows possono comparire come CRLF per la conversione automatica di Git. Non cambiare le fine riga a mano.
 - Commit recenti: `2a4db6c` (marchio da VascaLab a FixFitFiles), `74cc81f` (index.html), `31af666` (supporto `.zip` e `.gz`).
 
 ## Cosa fa il codice (letto solo in parte)
