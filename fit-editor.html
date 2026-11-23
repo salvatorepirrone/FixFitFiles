@@ -420,6 +420,74 @@ const L = { start_time: 2, elapsed: 3, timer: 4, strokes: 5, avg_speed: 6, swim_
 const P = { start_time: 2, elapsed: 7, timer: 8, distance: 9, calories: 11, avg_speed: 13, avg_hr: 15, max_hr: 16, num_lengths: 32, first_length_index: 35, swim_stroke: 38, num_active_lengths: 40, stroke_count: 75, min_hr: 63, message_index: 254 };
 const S = { distance: 9, avg_speed: 14, pool_length: 44, num_active_lengths: 47, num_laps: 26 };
 const R = { heart_rate: 3, timestamp: 253 };
+// Campi aggiuntivi (numeri verificati sul profilo FIT ufficiale Garmin). setField li ignora se il file non li contiene.
+const LX = { timestamp: 253, calories: 11 };
+const PX = { timestamp: 253, total_cycles: 10, max_speed: 14, avg_cadence: 17, max_cadence: 18, avg_stroke_distance: 37,
+  avg_swolf: 73, avg_strokes_per_length: 90, enhanced_avg_speed: 110, enhanced_max_speed: 111, active_time: 70, moving_time: 52 };
+const SX = { total_cycles: 10, max_speed: 15, avg_cadence: 18, max_cadence: 19, avg_strokes_per_length: 79, avg_swolf: 80,
+  stroke_count: 85, enhanced_avg_speed: 124, enhanced_max_speed: 125, active_time: 78, moving_time: 59 };
+
+// Scrive un valore numerico solo se il campo esiste, limitandolo al range del tipo (niente wrap-around).
+function setNum(msg, defNum, value, scale) {
+  const f = msg.fields.find(x => x.defNum === defNum);
+  if (!f) return false;
+  const info = baseTypeInfo(f.baseType);
+  if (info.kind !== 'int' && info.kind !== 'uint') return setField(msg, defNum, Math.round(value * (scale || 1)));
+  let raw = Math.round(value * (scale || 1));
+  const bits = f.size * 8;
+  const max = info.kind === 'int' ? Math.pow(2, bits - 1) - 1 : Math.pow(2, bits) - 2; // il valore massimo è riservato a "non valido"
+  const min = info.kind === 'int' ? -Math.pow(2, bits - 1) : 0;
+  raw = Math.max(min, Math.min(max, raw));
+  return setField(msg, defNum, raw);
+}
+function setInvalid(msg, defNum) {
+  const f = msg.fields.find(x => x.defNum === defNum);
+  if (!f) return;
+  const info = baseTypeInfo(f.baseType);
+  if (info.invalid !== undefined) setField(msg, defNum, info.invalid);
+}
+
+// Statistiche di nuoto su un gruppo di length (solo quelli attivi contano per passo, cadenza, SWOLF...).
+function swimStats(group, poolLength) {
+  const st = { activeCount: 0, strokes: 0, activeTimer: 0, totalTimer: 0, totalElapsed: 0, maxSpeed: 0, maxCadence: 0, swolfSum: 0, swolfN: 0 };
+  for (const m of group) {
+    const timer = getScaled(m, L.timer, 1000, 0) || 0;
+    st.totalTimer += timer;
+    st.totalElapsed += getScaled(m, L.elapsed, 1000, 0) || 0;
+    if (getField(m, L.length_type) !== 1) continue;
+    const strokes = getField(m, L.strokes) || 0;
+    st.activeCount++;
+    st.strokes += strokes;
+    st.activeTimer += timer;
+    if (timer > 0) {
+      const spd = poolLength / timer;
+      if (spd > st.maxSpeed) st.maxSpeed = spd;
+      st.swolfSum += Math.round(timer) + strokes; st.swolfN++;
+      const cad = strokes / (timer / 60);
+      if (cad > st.maxCadence) st.maxCadence = cad;
+    }
+  }
+  st.distance = st.activeCount * poolLength;
+  return st;
+}
+// Scrive su un messaggio lap o session le statistiche di nuoto derivate. `X` = mappa dei campi extra.
+function writeSwimStats(msg, X, st, poolLength) {
+  const spd = st.totalTimer > 0 ? st.distance / st.totalTimer : null;
+  if (spd !== null) { setNum(msg, X.enhanced_avg_speed, spd, 1000); }
+  if (st.maxSpeed > 0) { setNum(msg, X.max_speed, st.maxSpeed, 1000); setNum(msg, X.enhanced_max_speed, st.maxSpeed, 1000); }
+  setNum(msg, X.total_cycles, st.strokes, 1);
+  if (st.activeTimer > 0) {
+    setNum(msg, X.avg_cadence, st.strokes / (st.activeTimer / 60), 1);
+    setNum(msg, X.max_cadence, st.maxCadence, 1);
+  }
+  if (st.activeCount > 0) {
+    setNum(msg, X.avg_strokes_per_length, st.strokes / st.activeCount, 10);
+    if (st.swolfN > 0) setNum(msg, X.avg_swolf, st.swolfSum / st.swolfN, 1);
+    if (st.strokes > 0) setNum(msg, X.avg_stroke_distance, st.distance / st.strokes, 100);
+  }
+  setNum(msg, X.active_time, st.activeTimer, 1000);
+  setNum(msg, X.moving_time, st.activeTimer, 1000);
+}
 
 function getField(msg, defNum) {
   const f = msg.fields.find(x => x.defNum === defNum);
@@ -622,6 +690,21 @@ function recompute(state) {
     setField(lap, P.num_active_lengths, activeCount);
     if (sumTimer > 0) setScaled(lap, P.avg_speed, newDistance / sumTimer, 1000, 0);
     setField(lap, P.stroke_count, sumStrokes);
+
+    // inizio/fine del lap = inizio del primo e fine dell'ultimo length; poi cadenza, SWOLF, passo massimo...
+    const firstStart = getField(group[0], L.start_time);
+    if (firstStart !== null && firstStart !== undefined) setField(lap, P.start_time, firstStart);
+    const lastTs = getField(group[group.length - 1], LX.timestamp);
+    if (lastTs !== null && lastTs !== undefined) setField(lap, PX.timestamp, lastTs);
+    writeSwimStats(lap, PX, swimStats(group, poolLength), poolLength);
+    // calorie del lap = somma di quelle dei length (se i length le riportano)
+    const cals = group.map(m => getField(m, LX.calories));
+    if (cals.every(c => c !== null && c !== undefined)) setNum(lap, P.calories, cals.reduce((a, c) => a + c, 0), 1);
+    // frequenza cardiaca ricalcolata dai record nell'intervallo del lap
+    if (firstStart !== null && firstStart !== undefined) {
+      const hr = hrStatsForRange(state, firstStart, sumElapsed);
+      if (hr) { setField(lap, P.avg_hr, hr.avg); setField(lap, P.max_hr, hr.max); setField(lap, P.min_hr, hr.min); }
+    }
   });
 
   let totalActive = 0, totalTimer = 0;
@@ -634,6 +717,10 @@ function recompute(state) {
   setField(state.sessionMsg, S.num_active_lengths, totalActive);
   setField(state.sessionMsg, S.num_laps, lapMsgsAll.length);
   if (totalTimer > 0) setScaled(state.sessionMsg, S.avg_speed, sessionDistance / totalTimer, 1000, 0);
+  const sessSt = swimStats(lengthMsgsAll, poolLength);
+  writeSwimStats(state.sessionMsg, SX, sessSt, poolLength);
+  setNum(state.sessionMsg, SX.stroke_count, sessSt.strokes, 1);
+  if (lapMsgsAll.length > 0) setNum(state.sessionMsg, 69, sessSt.totalElapsed / lapMsgsAll.length, 1000); // avg_lap_time
 
   state.lengths = lengthMsgsAll.map((msg, i) => readLengthRow(msg, i, lapOf.get(msg) || null));
   state.lapMsgsAll = lapMsgsAll;
@@ -667,6 +754,15 @@ function splitLength(state, idx, splitSeconds, strokeA, strokeB) {
     setField(msgB, L.cadence, Math.round(strokesB / (remain / 60)));
   }
   if (strokeB) setField(msgB, L.swim_stroke, SWIM_STROKE_REV[strokeB]);
+  // timestamp = istante di fine: la prima metà ora finisce al punto di divisione, la seconda mantiene l'originale
+  const origStart = orig.startTimeRaw;
+  if (origStart !== null && origStart !== undefined) setNum(msgA, LX.timestamp, origStart + splitSeconds, 1);
+  const calTot = getField(orig.msg, LX.calories);
+  if (calTot !== null && calTot !== undefined) {
+    const calA = Math.round(calTot * splitSeconds / orig.elapsed);
+    setNum(msgA, LX.calories, calA, 1);
+    setNum(msgB, LX.calories, calTot - calA, 1);
+  }
 
   const origLap = state.msgLapMap.get(msgA);
   if (origLap) state.msgLapMap.set(msgB, origLap);
@@ -703,6 +799,11 @@ function mergeLengths(state, idxList) {
     const donorLap = rows.map(r => state.msgLapMap.get(r.msg)).find(Boolean);
     if (donorLap) state.msgLapMap.set(keepMsg, donorLap);
   }
+  // il length unito finisce dove finisce l'ultimo; le calorie si sommano
+  const lastTs = getField(rows[rows.length - 1].msg, LX.timestamp);
+  if (lastTs !== null && lastTs !== undefined) setNum(keepMsg, LX.timestamp, lastTs, 1);
+  const cals = rows.map(r => getField(r.msg, LX.calories));
+  if (cals.every(c => c !== null && c !== undefined)) setNum(keepMsg, LX.calories, cals.reduce((a, c) => a + c, 0), 1);
   for (let i = 1; i < rows.length; i++) {
     const pos = state.messages.indexOf(rows[i].msg);
     if (pos !== -1) state.messages.splice(pos, 1);

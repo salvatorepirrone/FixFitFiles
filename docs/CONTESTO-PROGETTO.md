@@ -9,11 +9,14 @@ Un editor web dei **length di nuoto in vasca** nei file FIT di Garmin: permette 
 - Repo GitHub pubblico: https://github.com/salvatorepirrone/FixFitFiles (ramo `main`).
 - Sito: https://fixfitfiles.netlify.app/ . Netlify pubblica da `main` in automatico (verificato: dopo un push la nuova versione è online in pochi secondi). Le impostazioni di Netlify non sono state viste.
 - File nella radice, nessuna build né dipendenze: `index.html` (editor con intestazione e menu), `fit-editor.html` (stesso editor senza intestazione), `help.html`, `faq.html`, `logo.svg`. Tutto in un solo file HTML con CSS e JavaScript inline, interfaccia in italiano.
-- I file HTML hanno fine riga CRLF: vanno mantenuti.
+- I file HTML hanno fine riga LF (verificato il 2026-11-23; una nota precedente diceva CRLF): vanno mantenuti.
 - Commit recenti: `2a4db6c` (marchio da VascaLab a FixFitFiles), `74cc81f` (index.html), `31af666` (supporto `.zip` e `.gz`).
 
 ## Cosa fa il codice (letto solo in parte)
 Funzioni principali in JavaScript: `readFit`, `loadSwimActivity`, `repairSwimActivity` (ripara incoerenze e vasche senza lap), `recompute`, `handleFile`, scrittura del FIT con ricalcolo del CRC. Il codice non è stato letto per intero né eseguito in un browser.
+
+## Correzione del 2026-11-23: statistiche dopo unione/divisione
+`recompute` aggiornava solo tempo, distanza, passo medio e bracciate di lap e sessione. Ora ricalcola anche passo avanzato (`enhanced_avg_speed`), velocità massima, cadenza media/massima, SWOLF, bracciate per vasca, distanza per bracciata, tempo attivo, FC media/max/min del lap (dai record), inizio/fine del lap e calorie; i length mantengono `timestamp` e calorie coerenti. I numeri dei campi sono verificati sul profilo FIT ufficiale; **non provato con un file FIT reale**, solo con un'attività sintetica.
 
 ## Novità recente
 Il caricamento accetta `.fit`, `.zip` (l'export originale di Garmin Connect, si prende il primo `.fit`) e `.gz`. Il tipo si riconosce dai primi byte e si decomprime nel browser con `DecompressionStream`. **Non provato con file reali**: va verificato.
